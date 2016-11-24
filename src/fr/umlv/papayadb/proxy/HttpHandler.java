@@ -12,7 +12,7 @@ class HttpHandler extends AbstractVerticle {
 	private final HttpServerOptions options;
 	
 	public HttpHandler() {
-		this.options = new HttpServerOptions().setHost("127.0.0.1").setPort(80);
+		this.options = new HttpServerOptions().setHost("127.0.0.1");
 		this.server = Vertx.vertx().createHttpServer(this.options);
 		this.server.requestHandler(this::onHTTPRequest);
 	}
@@ -22,9 +22,9 @@ class HttpHandler extends AbstractVerticle {
 		super.start();
 		server.listen(res -> {
 			if(res.succeeded()) {
-				System.out.println("Database is up & ready to listen on " + options.getHost() + ":" + options.getPort());
+				System.out.println("HttpServer is up & ready to listen on " + options.getHost() + ":" + options.getPort());
 			} else {
-				System.out.println("Database has failed to start");
+				System.out.println("HttpServer has failed to start");
 			}
 		});
 	}
@@ -34,9 +34,9 @@ class HttpHandler extends AbstractVerticle {
 		super.stop();
 		server.close(res -> {
 			if(res.succeeded()) {
-				System.out.println("Database is down");
+				System.out.println("HttpServer is down");
 			} else {
-				System.out.println("Database has failed to stop");
+				System.out.println("HttpServer has failed to stop");
 			}
 		});
 	}

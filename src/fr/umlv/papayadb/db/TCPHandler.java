@@ -6,11 +6,11 @@ import io.vertx.core.net.NetServer;
 import io.vertx.core.net.NetServerOptions;
 import io.vertx.core.net.NetSocket;
 
-public class Database extends AbstractVerticle {
+public class TCPHandler extends AbstractVerticle {
 	private final NetServer server;
 	private final NetServerOptions options;
 	
-	public Database() {
+	public TCPHandler() {
 		this.options = new NetServerOptions().setHost("127.0.0.1").setPort(7070);
 		this.server = Vertx.vertx().createNetServer(this.options);
 		this.server.connectHandler(this::onTCPRequest);

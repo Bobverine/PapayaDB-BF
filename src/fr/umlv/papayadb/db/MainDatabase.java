@@ -1,5 +1,11 @@
 package fr.umlv.papayadb.db;
 
-public class MainDatabase {
+import io.vertx.core.Vertx;
 
+public class MainDatabase {
+	public static void main(String[] args) {
+		Vertx vertx = Vertx.vertx();
+		TCPHandler db = new TCPHandler();
+		vertx.deployVerticle(db);
+	}
 }

@@ -1,7 +1,6 @@
 package fr.umlv.papayadb.proxy;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
@@ -13,7 +12,7 @@ class HttpHandler extends AbstractVerticle {
 	private final HttpServerOptions options;
 	
 	public HttpHandler() {
-		this.options = new HttpServerOptions().setHost("127.0.0.1").setPort(8080);
+		this.options = new HttpServerOptions().setHost("127.0.0.1").setPort(8080).setLogActivity(true);
 	}
 	
 	@Override
@@ -44,9 +43,11 @@ class HttpHandler extends AbstractVerticle {
 	}
 	
 	public void onHTTPRequest(HttpServerRequest request) {
-		request.handler(buffer -> {
+		/*request.bodyHandler(buffer -> {
 			System.out.println(buffer);
-		});
+		});*/
+		System.out.println(request.path());
+		request.response().end("Hello world");
 	}
 
 }

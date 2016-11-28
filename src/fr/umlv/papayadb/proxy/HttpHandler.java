@@ -43,10 +43,9 @@ class HttpHandler extends AbstractVerticle {
 	}
 	
 	public void onHTTPRequest(HttpServerRequest request) {
-		/*request.bodyHandler(buffer -> {
-			System.out.println(buffer);
-		});*/
 		System.out.println(request.path());
+		JsonObject json = RequestConverter.UrlToJson(request);
+		
 		request.response().end("Hello world");
 	}
 

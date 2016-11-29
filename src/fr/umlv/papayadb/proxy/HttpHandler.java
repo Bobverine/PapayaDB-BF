@@ -18,7 +18,7 @@ class HttpHandler extends AbstractVerticle {
 	private final NetClientOptions tcpOptions;
 	
 	public HttpHandler() {
-		this.httpOptions = new HttpServerOptions().setHost("127.0.0.1").setPort(8080).setLogActivity(true);
+		this.httpOptions = new HttpServerOptions().setHost("127.0.0.1").setPort(8080);
 		this.tcpOptions = new NetClientOptions().setConnectTimeout(10000);
 	}
 	
@@ -50,22 +50,18 @@ class HttpHandler extends AbstractVerticle {
 	
 	public void onHTTPRequest(HttpServerRequest request) {
 		JsonObject json = RequestConverter.UrlToJson(request);
+		System.out.println(json);
 		Buffer buffer = Buffer.buffer();
 		json.writeToBuffer(buffer);
 		client.connect(7070, "127.0.0.1", res -> {
-			if (res.succeeded()) {
+			if(res.succeeded()) {
 			    System.out.println("Connected!");
 			    NetSocket socket = res.result();
 			    socket.write(buffer);
-			  } else {
-			    System.out.println("Failed to connect: " + res.cause().getMessage());
-			  }
-			});
+			} else {
+				System.out.println("Failed to connect: " + res.cause().getMessage());
+			}
+		});
 		request.response().end("Hello world");
 	}
-
-	public void transmit(JsonObject json){
-		
-		}
-	
 }

@@ -1,6 +1,7 @@
 package fr.umlv.papayadb.db;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.NetServer;
 import io.vertx.core.net.NetServerOptions;
 import io.vertx.core.net.NetSocket;
@@ -40,7 +41,9 @@ public class TCPHandler extends AbstractVerticle {
 	
 	public void onTCPRequest(NetSocket socket) {
 		socket.handler(buffer -> {
-			System.out.println(buffer);
+			JsonObject json = new JsonObject();
+			json.readFromBuffer(0, buffer);
+			System.out.println(json);
 		});
 	}
 }

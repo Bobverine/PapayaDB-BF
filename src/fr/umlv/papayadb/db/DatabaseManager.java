@@ -17,25 +17,19 @@ public class DatabaseManager implements RequestInterface {
 	}
 
 	@Override
-	public boolean insertFileFromLocal(String name) {
+	public boolean insertFileFromLocal(String dbname, String filename) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean deleteFileFromDb(String name) {
+	public boolean deleteFileFromDatabase(String dbname, String filename) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean selectAllDatabases() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean selectFromDatabase(String name, String options) {
+	public boolean selectFromDatabase(String dbname, String options) {
 		// TODO Auto-generated method stub
 		return false;
 	}

@@ -34,4 +34,10 @@ public class Client implements RequestInterface{
 		return false;
 	}
 
+	@Override
+	public boolean selectDatabases() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }

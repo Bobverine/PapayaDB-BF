@@ -33,5 +33,11 @@ public class DatabaseManager implements RequestInterface {
 		// TODO Auto-generated method stub
 		return false;
 	}
+
+	@Override
+	public boolean selectDatabases() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 	
 }

@@ -6,4 +6,5 @@ public interface RequestInterface {
 	public boolean insertFileFromLocal(String dbname, String filename);
 	public boolean deleteFileFromDatabase(String dbname, String filename);
 	public boolean selectFromDatabase(String dbname, String options);
+	public boolean selectDatabases();
 }

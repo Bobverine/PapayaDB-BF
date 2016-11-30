@@ -50,7 +50,6 @@ class HttpHandler extends AbstractVerticle {
 	
 	public void onHTTPRequest(HttpServerRequest request) {
 		JsonObject json = RequestConverter.UrlToJson(request);
-		System.out.println(json);
 		Buffer buffer = Buffer.buffer();
 		json.writeToBuffer(buffer);
 		client.connect(7070, "127.0.0.1", res -> {

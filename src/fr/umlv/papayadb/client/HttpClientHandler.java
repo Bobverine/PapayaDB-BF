@@ -22,6 +22,5 @@ public class HttpClientHandler extends AbstractVerticle {
 			  System.out.println("Received response with status code " + response.statusCode());
 		});
 	}
-	
 
 }

@@ -1,19 +1,34 @@
 package fr.umlv.papayadb.client;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Scanner;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Vertx;
+import java.util.concurrent.CompletableFuture;
 
-public class MainClient extends AbstractVerticle{
+public class MainClient {
+	
+	private static String server;
+	
+	
+	private static void send(String server,String request) {
+		try {
+			CompletableFuture<HttpResponse> response = HttpRequest
+			          .create(new URI(server))
+			          .body(HttpRequest.fromString(request))
+			          .POST()
+			          .responseAsync();
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	public static void main(String[] args) {
-		Vertx vertx = Vertx.vertx();
 		if (args.length != 2){
 			throw new IllegalArgumentException("Entrez l'adresse puis le port");
 		}
-		HttpClientHandler client = new HttpClientHandler(args[1], Integer.parseInt(args[2]));
-		vertx.deployVerticle(client);
-		
+		server = args[1];
 		System.out.println("Tapez votre commande ou tapez help pour afficher les commandes et la syntaxe");
 		
 		Scanner sc = new Scanner(System.in);
@@ -24,7 +39,7 @@ public class MainClient extends AbstractVerticle{
 				System.out.println("Voici les commandes possibles :");
 				break;
 			default:
-				client.send(request);
+				send(server, request);
 				break;
 			}
 			request = sc.nextLine();

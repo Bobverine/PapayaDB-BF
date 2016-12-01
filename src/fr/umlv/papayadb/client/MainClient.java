@@ -10,15 +10,16 @@ import java.util.concurrent.CompletableFuture;
 public class MainClient {
 	
 	private static String server;
+	private static int port;
 	
-	
-	private static void send(String server,String request) {
+	private static void send(String server,int port,String request) {
 		try {
 			CompletableFuture<HttpResponse> response = HttpRequest
 			          .create(new URI(server))
 			          .body(HttpRequest.fromString(request))
 			          .POST()
 			          .responseAsync();
+			System.out.println(response);
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
@@ -28,7 +29,10 @@ public class MainClient {
 		if (args.length != 2){
 			throw new IllegalArgumentException("Entrez l'adresse puis le port");
 		}
-		server = args[1];
+		System.out.println(args[0]);
+		System.out.println(args[1]);
+		server = args[0];
+		port = Integer.parseInt(args[1]);
 		System.out.println("Tapez votre commande ou tapez help pour afficher les commandes et la syntaxe");
 		
 		Scanner sc = new Scanner(System.in);
@@ -39,7 +43,7 @@ public class MainClient {
 				System.out.println("Voici les commandes possibles :");
 				break;
 			default:
-				send(server, request);
+				send(server, port,request);
 				break;
 			}
 			request = sc.nextLine();

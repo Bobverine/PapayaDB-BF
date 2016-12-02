@@ -1,26 +1,40 @@
 package fr.umlv.papayadb.client;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-public class HttpClientHandler extends AbstractVerticle {
-	private final HttpClientOptions options;
-	private HttpClient client;
+public class HttpClientHandler {
+	private String server;
 	
-	public HttpClientHandler(String address, int port){
-		this.options = new HttpClientOptions().setDefaultHost(address).setDefaultPort(port);
-	}
-	
-	@Override
-	public void start() throws Exception {
-		this.client = vertx.createHttpClient(options);
+	public HttpClientHandler(String server){
+		this.server = server;
 	}
 	
 	public void send(String request) {
-		client.getNow(request, response -> {
-			  System.out.println("Received response with status code " + response.statusCode());
-		});
+		try {
+			CompletableFuture<HttpResponse> response = HttpRequest
+			          .create(new URI(this.server))
+			          .body(HttpRequest.fromString(request))
+			          .POST()
+			          .responseAsync();
+			
+			HttpResponse r = response.get();
+			System.out.println(r.body(HttpResponse.asString()));
+			
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
+	
 
 }

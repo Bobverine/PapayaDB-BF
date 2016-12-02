@@ -4,6 +4,50 @@ import java.util.Scanner;
 
 public class MainClient {
 	
+	private static void printCommand(){
+		System.out.println("Voici les commandes possibles :");
+		System.out.println("Créer une database : createDatabase /:dbname");
+		System.out.println("Supprimer une database : deleteDatabase /:dbname");
+		System.out.println("Afficher toutes les bases de données : selectDatabases /");
+		System.out.println("Insérer dans une base de donnée : insertFileFromLocal /:dbname/:filename");
+		System.out.println("Supprimer dans une base de donnée : deleteFileFromDb /:dbname/:filename");
+		System.out.println("Afficher une donnée d'une base de donnée : selectFromDatabase /:dbname?filter=[...]");
+	}
+	
+	private static void executeCommand(HttpClientHandler client, String command) {
+		String[] split = command.split(" ");
+		StringBuilder sb = new StringBuilder();
+		for(int i = 1; i < split.length; i++) {
+			sb.append(split[i]);
+		}
+		String request = sb.toString();
+		switch(split[0]) {
+			case "help":
+				printCommand();
+				break;
+			case "createDatabase":
+				client.post(request);
+				break;
+			case "deleteDatabase":
+				client.delete(request);
+				break;
+			case "selectDatabases":
+				client.get("/");
+				break;
+			case "insertFileFromLocal":
+				client.post(request);
+				break;
+			case "deleteFileFromDb":
+				client.delete(request);
+				break;
+			case "selectFromDatabase":
+				client.get(request);
+				break;
+			default:
+				System.out.println("Bad request");
+		}
+	}
+	
 	
 	
 	public static void main(String[] args) {
@@ -14,20 +58,14 @@ public class MainClient {
 		HttpClientHandler client = new HttpClientHandler(args[0]);
 		
 		System.out.println("Tapez votre commande ou tapez help pour afficher les commandes et la syntaxe");
-		
 		Scanner sc = new Scanner(System.in);
-		String request = sc.nextLine();
-		while(!request.contentEquals("exit")){
-			switch(request) {
-			case "help":
-				System.out.println("Voici les commandes possibles :");
-				break;
-			default:
-				client.send(request);
-				break;
-			}
-			request = sc.nextLine();
+		String command = sc.nextLine();
+		while(!command.contentEquals("exit")) {
+			executeCommand(client , command);
+			command = sc.nextLine();
 		}
+		sc.close();
+		
 	}
 
 }

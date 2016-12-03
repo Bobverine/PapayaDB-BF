@@ -18,7 +18,7 @@ class HttpHandler extends AbstractVerticle {
 	private final NetClientOptions tcpOptions;
 	
 	public HttpHandler() {
-		this.httpOptions = new HttpServerOptions().setHost("127.0.0.1").setPort(8080);
+		this.httpOptions = new HttpServerOptions().setHost("127.0.0.1").setPort(8080)/*.setSsl(true)*/;
 		this.tcpOptions = new NetClientOptions().setConnectTimeout(10000);
 	}
 	
@@ -27,7 +27,6 @@ class HttpHandler extends AbstractVerticle {
 		this.server = vertx.createHttpServer(this.httpOptions);
 		this.server.requestHandler(this::onHTTPRequest);
 		this.client = vertx.createNetClient(this.tcpOptions);
-
 		server.listen(res -> {
 			if(res.succeeded()) {
 				System.out.println("HttpServer is up & ready to listen on " + httpOptions.getHost() + ":" + httpOptions.getPort());

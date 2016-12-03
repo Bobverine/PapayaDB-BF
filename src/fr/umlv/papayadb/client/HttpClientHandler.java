@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutionException;
 public class HttpClientHandler {
 	private String server;
 	
-	public HttpClientHandler(String server){
+	public HttpClientHandler(String server) {
 		this.server = server;
 	}
 	
@@ -26,7 +26,6 @@ public class HttpClientHandler {
 			          .body(HttpRequest.fromString(request))
 			          .POST()
 			          .responseAsync();
-			
 			HttpResponse r = response.get();
 			System.out.println(r.body(HttpResponse.asString()));
 			
@@ -85,7 +84,7 @@ public class HttpClientHandler {
 		}
 	}
 	
-	public void delete(String request){
+	public void delete(String request) {
 			URL uri;
 			try {
 				uri = new URL(this.server);

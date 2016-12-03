@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 public class MainClient {
 	
-	private static void printCommand(){
+	private static void printCommand() {
 		System.out.println("Voici les commandes possibles :");
 		System.out.println("Créer une database : createDatabase /:dbname");
 		System.out.println("Supprimer une database : deleteDatabase /:dbname");
@@ -45,18 +45,18 @@ public class MainClient {
 				break;
 			default:
 				System.out.println("Bad request");
+				break;
 		}
 	}
 	
 	
 	
 	public static void main(String[] args) {
-		if (args.length != 1){
+		if (args.length != 1) {
 			throw new IllegalArgumentException("Entrez l'adresse suivi du port ex : http://127.0.0.1:8080");
 		}
 		System.out.println(args[0]);
 		HttpClientHandler client = new HttpClientHandler(args[0]);
-		
 		System.out.println("Tapez votre commande ou tapez help pour afficher les commandes et la syntaxe");
 		Scanner sc = new Scanner(System.in);
 		String command = sc.nextLine();

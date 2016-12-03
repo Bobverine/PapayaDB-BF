@@ -72,5 +72,6 @@ class HttpHandler extends AbstractVerticle {
 			}
 		});
 		request.response().end("Hello world");
+		client.close();
 	}
 }

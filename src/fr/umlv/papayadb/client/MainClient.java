@@ -4,6 +4,11 @@ import java.util.Scanner;
 
 public class MainClient {
 	
+	/**
+	 * Affiche la liste des commandes possible
+	 * 
+	 * @return void
+	 */
 	private static void printCommand() {
 		System.out.println("Voici les commandes possibles :");
 		System.out.println("Créer une database : createDatabase /:dbname");
@@ -14,6 +19,17 @@ public class MainClient {
 		System.out.println("Afficher une donnée d'une base de donnée : selectFromDatabase /:dbname?filter=[...]");
 	}
 	
+	/**
+	 * Envoi la commande au serveur en fonction de la requpete de l'utilisateur (GET, POST ...)
+	 * 
+	 * @param client
+	 *            Client HTTP qui possède les informations du serveur cible
+	 *            
+	 * @param command
+	 * 			  Commande de l'utilisateur à envoyer
+	 *            
+	 * @return void
+	 */
 	private static void executeCommand(HttpClientHandler client, String command) {
 		String[] split = command.split(" ");
 		StringBuilder sb = new StringBuilder();

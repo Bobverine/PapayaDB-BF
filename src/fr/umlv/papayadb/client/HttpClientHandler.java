@@ -18,6 +18,12 @@ public class HttpClientHandler {
 		this.server = server;
 	}
 	
+	/**
+	 * Permet d'envoyer une requête HTTP de type POST
+	 * 
+	 * @param request
+	 *            requête de l'utilisateur à transmettre
+	 */
 	public void post(String request) {
 		Objects.requireNonNull(request);
 		try {
@@ -33,6 +39,12 @@ public class HttpClientHandler {
 		}
 	}
 	
+	/**
+	 * Permet d'envoyer une requête HTTP de type GET
+	 * 
+	 * @param request
+	 *            requête de l'utilisateur à transmettre
+	 */
 	public void get(String request) {
 		Objects.requireNonNull(request);
 		try {
@@ -49,6 +61,12 @@ public class HttpClientHandler {
 		}
 	}
 	
+	/**
+	 * Permet d'envoyer une requête HTTP de type PUT
+	 * 
+	 * @param request
+	 *            requête de l'utilisateur à transmettre
+	 */
 	public void put(String request) {
 		Objects.requireNonNull(request);
 		try {
@@ -65,6 +83,12 @@ public class HttpClientHandler {
 		}
 	}
 	
+	/**
+	 * Permet d'envoyer une requête HTTP de type DELETE
+	 * 
+	 * @param request
+	 *            requête de l'utilisateur à transmettre
+	 */
 	public void delete(String request) {
 		Objects.requireNonNull(request);
 		URL uri;

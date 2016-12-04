@@ -2,12 +2,10 @@ package fr.umlv.papayadb.proxy;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.ClientAuth;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetClientOptions;
 import io.vertx.core.net.NetSocket;
@@ -19,6 +17,9 @@ class HttpHandler extends AbstractVerticle {
 	private NetClient client;
 	private final NetClientOptions tcpOptions;
 	
+	/**
+	 * Constructeur par défaut qui définit les options du serveur http et du client tcp
+	 */
 	public HttpHandler() {
 		this.httpOptions = new HttpServerOptions().setHost("127.0.0.1").setPort(8080)/*.setPort(443).setSsl(true).setKeyStoreOptions(
 				new JksOptions().
@@ -33,6 +34,9 @@ class HttpHandler extends AbstractVerticle {
 		this.tcpOptions = new NetClientOptions().setConnectTimeout(10000);
 	}
 	
+	/**
+	 * Méthode permettant de démarer le serveur (est utilisé par deployVerticle de Vertx)
+	 */
 	@Override
 	public void start() throws Exception {
 		this.server = vertx.createHttpServer(this.httpOptions);
@@ -47,6 +51,9 @@ class HttpHandler extends AbstractVerticle {
 		});
 	}
 	
+	/**
+	 * Méthode permettant d'arrèter le serveur TCP
+	 */
 	@Override
 	public void stop() throws Exception {
 		server.close(res -> {
@@ -58,6 +65,12 @@ class HttpHandler extends AbstractVerticle {
 		});
 	}
 	
+	/**
+	 * Défini ce qui sera fait lors de la réception d'une requête
+	 * 
+	 * @param request
+	 *            requpete reçue
+	 */
 	public void onHTTPRequest(HttpServerRequest request) {
 		JsonObject json = RequestConverter.UrlToJson(request);
 		Buffer buffer = Buffer.buffer();

@@ -9,7 +9,17 @@ import java.util.stream.Collectors;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 
+
 public class RequestConverter {
+	
+	/**
+	 * Permet de transformer la requete reçue en un document JSON
+	 * 
+	 * @param request
+	 *            requpete http a transformer
+	 *            
+	 * @return JsonObject
+	 */
 	public static JsonObject UrlToJson(HttpServerRequest request) {
 		Objects.requireNonNull(request);
 		String[] splitedRequest = request.path().split("/");

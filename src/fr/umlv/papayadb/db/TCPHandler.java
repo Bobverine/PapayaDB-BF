@@ -17,6 +17,9 @@ public class TCPHandler extends AbstractVerticle {
 		//this.file = aFile.getChannel();
 	}
 	
+	/**
+	 * Méthode permettant de démarer le serveur (est utilisé par deployVerticle de Vertx)
+	 */
 	@Override
 	public void start() throws Exception {
 		server = vertx.createNetServer(this.options);
@@ -31,6 +34,9 @@ public class TCPHandler extends AbstractVerticle {
 		});
 	}
 	
+	/**
+	 * Méthode permettant d'arrèter le serveur TCP
+	 */
 	@Override
 	public void stop() throws Exception {
 		server.close(res -> {
@@ -42,6 +48,12 @@ public class TCPHandler extends AbstractVerticle {
 		});
 	}
 	
+	/**
+	 * Défini ce qui sera fait lors de la réception d'une requête
+	 * 
+	 * @param socket
+	 *            requpete reçue
+	 */
 	public void onTCPRequest(NetSocket socket) {
 		socket.handler(buffer -> {
 			JsonObject json = new JsonObject();

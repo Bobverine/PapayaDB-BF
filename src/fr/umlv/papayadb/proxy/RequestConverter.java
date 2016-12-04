@@ -20,7 +20,7 @@ public class RequestConverter {
 		if(requestList.isEmpty()) {
 			json.put("db", "*");
 		}
-		if(requestList.size() == 1){
+		if(requestList.size() == 1) {
 			json.put("db", requestList.get(0));
 			JsonObject filter = new JsonObject();
 			for(Entry<String, String> entry : request.params()) {

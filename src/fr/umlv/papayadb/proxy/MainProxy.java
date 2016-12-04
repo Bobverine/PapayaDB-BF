@@ -6,7 +6,7 @@ public class MainProxy {
 	
 	public static void main(String[] args) {
 		Vertx vertx = Vertx.vertx();
-		HttpHandler server = new HttpHandler();
+		Proxy server = new Proxy();
 		vertx.deployVerticle(server);
 	}
 }

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<project name="PapayaDB" default="all">
+	
+	<property name="classes" location="classes"/>
+	<property name="src" location="src"/>
+	<property name="docs" location="${build}/docs/api"/>
+	<property name="libs" location="${build}/libs"/>
+	
+	
+	<target name="init" description="Initialisation">
+	    <tstamp/>
+	    <buildnumber file="numerobuild.txt" />
+	    <echo message="Generation numero : ${build.number} du ${TODAY}"/>
+	  </target>
+
+	  <target name="compile" depends="init" description="Compilation">
+	    <javac srcdir="${src}" destdir="${classes}">
+	    </javac>
+	  </target>
+
+	  <target name="all" depends="init, compile, javadoc" 
+	    description="Generation complete">
+	    <echo message="Generation complete."/>
+	  </target>
+	
+	  <target name="javadoc" depends="compile" description="Generation documentation">
+	    <javadoc destdir="${doc}" author="true" version="true" use="true" 
+	      package="true">
+	      <fileset dir = "${src}">
+	        <include name="**/*.java"/>
+	      </fileset>
+	      <classpath>
+	        <pathelement path="${java.class.path}"/>
+	      </classpath>
+	    </javadoc>
+	  </target>
+	
+</project>

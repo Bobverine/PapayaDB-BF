@@ -2,13 +2,12 @@ package fr.umlv.papayadb.client;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -20,6 +19,7 @@ public class HttpClientHandler {
 	}
 	
 	public void post(String request) {
+		Objects.requireNonNull(request);
 		try {
 			CompletableFuture<HttpResponse> response = HttpRequest
 			          .create(new URI(this.server))
@@ -27,20 +27,14 @@ public class HttpClientHandler {
 			          .POST()
 			          .responseAsync();
 			HttpResponse r = response.get();
-			System.out.println(r.body(HttpResponse.asString()));
-			
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
+			System.out.println(r.body(HttpResponse.asString()));	
+		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public void get(String request) {
+		Objects.requireNonNull(request);
 		try {
 			CompletableFuture<HttpResponse> response = HttpRequest
 			          .create(new URI(this.server))
@@ -49,20 +43,14 @@ public class HttpClientHandler {
 			          .responseAsync();
 			
 			HttpResponse r = response.get();
-			System.out.println(r.body(HttpResponse.asString()));
-			
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
+			System.out.println(r.body(HttpResponse.asString()));	
+		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public void put(String request) {
+		Objects.requireNonNull(request);
 		try {
 			CompletableFuture<HttpResponse> response = HttpRequest
 			          .create(new URI(this.server))
@@ -72,36 +60,23 @@ public class HttpClientHandler {
 			
 			HttpResponse r = response.get();
 			System.out.println(r.body(HttpResponse.asString()));
-			
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
+		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public void delete(String request) {
-			URL uri;
-			try {
-				uri = new URL(this.server);
-				HttpURLConnection connexion;
-				connexion = (HttpURLConnection) uri.openConnection();
-				connexion.setRequestMethod("DELETE");
-				connexion.connect();
-			} catch (MalformedURLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ProtocolException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		Objects.requireNonNull(request);
+		URL uri;
+		try {
+			uri = new URL(this.server);
+			HttpURLConnection connexion;
+			connexion = (HttpURLConnection) uri.openConnection();
+			connexion.setRequestMethod("DELETE");
+			connexion.connect();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} 
 	}
 	
 

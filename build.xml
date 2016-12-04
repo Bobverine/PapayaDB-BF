@@ -6,7 +6,10 @@
 	<property name="docs" location="${build}/docs/api"/>
 	<property name="libs" location="${build}/libs"/>
 	
-	
+	 <path id="lib.path">
+	        <fileset dir="libs/vertx/lib" includes="**/*.jar"/>
+	    </path>
+		
 	<target name="init" description="Initialisation">
 	    <tstamp/>
 	    <buildnumber file="numerobuild.txt" />
@@ -14,7 +17,7 @@
 	  </target>
 
 	  <target name="compile" depends="init" description="Compilation">
-	    <javac srcdir="${src}" destdir="${classes}">
+	    <javac srcdir="${src}" includes="**/*.java" destdir="${classes}" classpathref="lib.path" >
 	    </javac>
 	  </target>
 
@@ -24,7 +27,7 @@
 	  </target>
 	
 	  <target name="javadoc" depends="compile" description="Generation documentation">
-	    <javadoc destdir="${doc}" author="true" version="true" use="true" 
+	    <javadoc destdir="docs/api" author="true" version="true" use="true" 
 	      package="true">
 	      <fileset dir = "${src}">
 	        <include name="**/*.java"/>

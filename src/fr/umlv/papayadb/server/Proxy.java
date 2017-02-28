@@ -4,30 +4,23 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Map.Entry;
-import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 
-public class Proxy extends AbstractVerticle implements Runnable {
-	private final BlockingQueue<JsonObject> queue;
+public class Proxy extends AbstractVerticle {
+	private final Database database;
 	private HttpServer server;
 	private final HttpServerOptions httpOptions;
 	
-	public Proxy(BlockingQueue<JsonObject> queue) {
-		this.queue = queue;
+	public Proxy(Database db) {
+		this.database = db;
 		this.httpOptions = new HttpServerOptions().setHost("127.0.0.1").setPort(8080);
-	}
-	
-	@Override
-	public void run() {
-		Vertx vertx = Vertx.vertx();
-		vertx.deployVerticle(this);
 	}
 	
 	@Override
@@ -56,13 +49,52 @@ public class Proxy extends AbstractVerticle implements Runnable {
 	}
 	
 	public void onHTTPRequest(HttpServerRequest request) {
-		JsonObject json = UrlToJson(request);
+		//JsonObject json = UrlToJson(request);
+		//gestion utilisateur
+		//appel à la db
+		request.formAttributes().forEach(entry -> {
+			System.out.println(entry.getKey() + " " + entry.getValue());
+		});
+		
 		try {
-			queue.put(json);
-		} catch (InterruptedException e) {
-			request.response().end("Something happened, sorry try again");
-			e.printStackTrace();
+			//if(json.getString("method").equals(HttpMethod.GET.toString())) {
+			if(request.method().equals(HttpMethod.GET)) {
+				//if(!json.getString("db").isEmpty()) {
+				if(!request.getFormAttribute("db").isEmpty()) {
+					//database.getFiles(json.getString("db"), json.getString("filter"));
+					database.getFiles(request.getFormAttribute("db"), request.getFormAttribute("filter"));
+				} else {
+					database.getDatabases();
+				}
+			}
+			//if(json.getString("method").equals(HttpMethod.POST.toString())) {
+			if(request.method().equals(HttpMethod.POST)) {
+				//if(!json.getString("db").isEmpty()) {
+				if(!request.getFormAttribute("db").isEmpty()) {
+					//if(!json.getString("file").isEmpty()) {
+					if(!request.getFormAttribute("file").isEmpty()) {
+						database.insertFile(request.getFormAttribute("db"), request.getFormAttribute("file"));
+					} else {
+						database.createDatabase(request.getFormAttribute("db"));
+					}
+				}
+			}
+			//if(json.getString("method").equals(HttpMethod.DELETE.toString())) {
+			if(request.method().equals(HttpMethod.DELETE)) {
+				//if(!json.getString("db").isEmpty()) {
+				if(!request.getFormAttribute("db").isEmpty()) {
+					//if(!json.getString("file").isEmpty()) {
+					if(!request.getFormAttribute("file").isEmpty()) {
+						database.DeleteFile(request.getFormAttribute("db"), request.getFormAttribute("file"));
+					} else {
+						database.DeleteDatabase(request.getFormAttribute("db"));
+					}
+				}
+			}
+		} catch (NullPointerException e) {
+			System.out.println("Request not valid");
 		}
+		
 		request.response().end("Hello world");
 	}
 	
@@ -72,10 +104,10 @@ public class Proxy extends AbstractVerticle implements Runnable {
 		List<String> requestList = Arrays.stream(splitedRequest).filter(e -> !e.isEmpty()).collect(Collectors.toList());
 
 		JsonObject json = new JsonObject();
-		json.put("method", request.method());
-		if(requestList.isEmpty()) {
+		json.put("method", request.method().toString());
+		/*if(requestList.isEmpty()) {
 			json.put("db", "*");
-		}
+		}*/
 		if(requestList.size() == 1) {
 			json.put("db", requestList.get(0));
 			JsonObject filter = new JsonObject();

@@ -1,8 +1,8 @@
 package fr.umlv.papayadb.client;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -10,21 +10,47 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Builder;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.http.HttpClient.Version;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class Client {
 	private String server;
+	private final HttpClient client;
 
 	public Client(String server) {
 		this.server = server;
-		//Builder build = HttpClient.create();
-		//HttpClient client = build.build();
+		//char[] password = {'p','a','s','s','w','o','r','d'};
+		//PasswordAuthentication pass = new PasswordAuthentication("root", password);
+		//SSLContext ssl = getContextInstance();
+		Builder build = HttpClient.create();
+		//build.sslContext(ssl);
+		this.client = build.build();
 	}
+	
+	/*private SSLContext getContextInstance() {
+		try {
+			SSLContext sc = SSLContext.getInstance("SSLv3");
+			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+			String ksName = "keystore";
+			char ksPass[] = "papaya".toCharArray();
+			char ctPass[] = "papaya".toCharArray();
+			KeyStore ks = KeyStore.getInstance("JKS");
+			ks.load(new FileInputStream(ksName), ksPass);
+			kmf.init(ks, ctPass);
+			KeyManager[] kmList = kmf.getKeyManagers();
+			sc.init(kmList, null, null);
+	
+			return sc;
+		} catch (Exception e) {
+			System.err.println(e.toString());
+			return null;
+		}
+	}*/
 
 	/**
 	 * Envoi la commande au serveur en fonction de la requpete de l'utilisateur
@@ -69,20 +95,55 @@ public class Client {
 		case "selectFromDatabase":
 			get(database, request);
 			break;
+		case "getFileFromDb":
+			getFileFromDb(database, request);
+			break;
 		default:
 			return false;
 		}
 		return true;
 	}
 	
+	private void getFileFromDb(String database, String file) {
+		Objects.requireNonNull(file);
+		try {
+			CompletableFuture<HttpResponse> response = client.request(new URI(this.server))
+					.header("db", database)
+					.header("file", file)
+					.GET()
+					.responseAsync();
+			HttpResponse r = response.get();
+			File newFile = new File("DL_"+file);
+			r.body(HttpResponse.asFile(newFile.toPath()));
+			System.out.println(r.body(HttpResponse.asString()));
+		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+		}
+	}
+
 	/**
 	 * Permet d'envoyer un fichier json/txt pour insersion dans la BDD
 	 * @param file
 	 */
 	private void insertFileFromLocal(String database,String file) {
+		String[] fileNameRetriever = file.split("/");
+		String fileName = fileNameRetriever[fileNameRetriever.length];
+		try {
+			CompletableFuture<HttpResponse> response = client.request(new URI(this.server))
+					.setHeader("db", database)
+					.setHeader("file", fileName)
+					.body(HttpRequest.fromString(readFile(file)))
+					.POST()
+					.responseAsync();
+			HttpResponse r = response.get();
+			System.out.println(r.body(HttpResponse.asString()));
+		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+		}
+	} // insertFileFromLocal /Users/Rayco/Documents/testJSON.json
+
+	private String readFile(String file) {
 		try{
-			 String[] fileNameRetriever = file.split("/");
-			 String fileName = fileNameRetriever[fileNameRetriever.length];
 	         InputStream ips=new FileInputStream(file);
 	         InputStreamReader ipsr=new InputStreamReader(ips);
 	         BufferedReader br=new BufferedReader(ipsr);
@@ -94,13 +155,13 @@ public class Client {
 	         br.close();
 	         String content = sb.toString();
 	         //System.out.println(content);
-	         post(database, fileName, content);
+	         return content;
 	      }    
 	      catch (Exception e){
 	         System.out.println(e.toString());
+	         return null;
 	      }
-	} // insertFileFromLocal /Users/Rayco/Documents/testJSON.json
-
+	}
 	/**
 	 * Affiche la liste des commandes possible
 	 * 
@@ -124,30 +185,8 @@ public class Client {
 	private void post(String database) {
 		Objects.requireNonNull(database);
 		try {
-			CompletableFuture<HttpResponse> response = HttpRequest.create(new URI(this.server))
-					.setHeader("database", database)
-					.POST()
-					.responseAsync();
-			HttpResponse r = response.get();
-			System.out.println(r.body(HttpResponse.asString()));
-		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-	 * Permet d'envoyer une requête HTTP de type POST
-	 * 
-	 * @param request
-	 *            requête de l'utilisateur à transmettre
-	 */
-	private void post(String database ,String file,String request) {
-		Objects.requireNonNull(request);
-		try {
-			CompletableFuture<HttpResponse> response = HttpRequest.create(new URI(this.server))
-					.setHeader("database", database)
-					.setHeader("file", file)
-					.body(HttpRequest.fromString(request))
+			CompletableFuture<HttpResponse> response = client.request(new URI(this.server))
+					.setHeader("db", database)
 					.POST()
 					.responseAsync();
 			HttpResponse r = response.get();
@@ -166,8 +205,8 @@ public class Client {
 	private void get(String database) {
 		Objects.requireNonNull(database);
 		try {
-			CompletableFuture<HttpResponse> response = HttpRequest.create(new URI(this.server))
-					.header("database", database)
+			CompletableFuture<HttpResponse> response = client.request(new URI(this.server))
+					.header("db", database)
 					.GET()
 					.responseAsync();
 			HttpResponse r = response.get();
@@ -183,12 +222,12 @@ public class Client {
 	 * @param request
 	 *            requête de l'utilisateur à transmettre
 	 */
-	private void get(String database,String filters) {
-		Objects.requireNonNull(filters);
+	private void get(String database,String filter) {
+		Objects.requireNonNull(filter);
 		try {
-			CompletableFuture<HttpResponse> response = HttpRequest.create(new URI(this.server))
-					.header("database", database)
-					.header("filters", filters)
+			CompletableFuture<HttpResponse> response = client.request(new URI(this.server))
+					.header("db", database)
+					.header("filter", filter)
 					.GET()
 					.responseAsync();
 			HttpResponse r = response.get();
@@ -235,7 +274,7 @@ public class Client {
 			HttpURLConnection connexion;
 			connexion = (HttpURLConnection) uri.openConnection();
 			connexion.setRequestMethod("DELETE");
-			connexion.addRequestProperty("database", database);
+			connexion.addRequestProperty("db", database);
 			connexion.connect();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -256,7 +295,7 @@ public class Client {
 			HttpURLConnection connexion;
 			connexion = (HttpURLConnection) uri.openConnection();
 			connexion.setRequestMethod("DELETE");
-			connexion.addRequestProperty("database", database);
+			connexion.addRequestProperty("db", database);
 			connexion.addRequestProperty("file", file);
 			connexion.connect();
 		} catch (IOException e) {

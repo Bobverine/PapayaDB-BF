@@ -11,6 +11,7 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 
+
 public class Proxy extends AbstractVerticle {
 	private final HashMap<String, Database> databases;
 	private HttpServer server;
@@ -57,6 +58,11 @@ public class Proxy extends AbstractVerticle {
 		});
 	}
 	
+	/**
+	 * Permet d'appeler selon la requête reçu la méthode de la BDD correspondante
+	 * 
+	 * @param request la requête HTTP du client
+	 */
 	public void onHTTPRequest(HttpServerRequest request) {
 		//gestion utilisateur
 		HttpServerResponse response = request.response();
@@ -99,7 +105,7 @@ public class Proxy extends AbstractVerticle {
 						}
 						else {
 							request.bodyHandler((Buffer buffer) -> {
-								databases.get(request.getHeader("db")).insertFile(request.getHeader("db"), request.getHeader("file"), buffer.toString());
+								databases.get(request.getHeader("db")).insertFile(request.getHeader("file"), buffer.toString());
 							});
 							response.setStatusCode(200).end("File " + request.getHeader("file") + " inserted in " + request.getHeader("db"));
 						}

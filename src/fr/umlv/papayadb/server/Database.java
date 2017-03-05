@@ -1,6 +1,5 @@
 package fr.umlv.papayadb.server;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -51,6 +50,9 @@ public class Database {
 		updateFiles();
 	}
 	
+	/**
+	 * Met à jour la hashmap files afin d'obtenir la liste des fichiers et leur adresse
+	 */
 	public void updateFiles(){
 		buffer.position(0);
 		while(buffer.hasRemaining()) {
@@ -70,7 +72,13 @@ public class Database {
 		System.out.println("Number of files : " + files.size());
 	}
 	
-	public void insertFile(String db, String file, String data) {
+	/**
+	 * Insère un fichier et son nom dans la BDD
+	 * 
+	 * @param file nom du fichier à ajouter
+	 * @param data contenu du fichier à ajouter
+	 */
+	public void insertFile(String file, String data) {
 		//CHECK SI LE NOM DU FICHIER EXISTE DEJA DANS LA BDD
 		int size = data.getBytes().length;
 		int address = buffer.capacity();
@@ -101,11 +109,21 @@ public class Database {
 		
 	}
 
+	/**
+	 * Supprime la base de données
+	 * 
+	 * @return Vrai si la BDD a bien été supprimé
+	 */
 	public boolean DeleteDatabase() {
 		Path path = Paths.get(name);
 		return path.toFile().delete();
 	}
 
+	/**
+	 * Renvoie une hashmap des fichiers et de leur adresse dans la BDD
+	 * 
+	 * @return une hashmap d'adresses et de nom de fichier
+	 */
 	public HashMap<Integer, String> getFiles() {
 		files.forEach((address, name) -> {
 			System.out.println(address + " " + name);
@@ -119,6 +137,12 @@ public class Database {
 		return files;
 	}
 
+	/**
+	 * Renvoie le fichier de la BDD correspondant au nom passé en argument
+	 * 
+	 * @param filename nom du fichier voulu
+	 * @return
+	 */
 	public String getFile(String filename) {
 		for(Integer address : files.keySet()){
 			if(files.get(address).equals(filename)){

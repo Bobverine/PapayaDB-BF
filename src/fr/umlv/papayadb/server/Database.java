@@ -1,115 +1,115 @@
 package fr.umlv.papayadb.server;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.OpenOption;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
-import java.util.Set;
 
 public class Database {
+	private RandomAccessFile raf;
 	private FileChannel filechannel;
-	private HashMap<Integer, String> databases = new HashMap<>();
-	private HashMap<Integer, String> files = new HashMap<>(); //adress, name
+	private MappedByteBuffer buffer;
+	private HashMap<Integer, String> files = new HashMap<>(); //address, name
 	
-	public Database() {
-		Path path = Paths.get("./papaya.db");
-		Set<OpenOption> options = Set.of(StandardOpenOption.CREATE, StandardOpenOption.SYNC, StandardOpenOption.READ, StandardOpenOption.WRITE);
-		try {
-			filechannel = FileChannel.open(path, options);
-		} catch (IOException e) {
-			System.out.println("failed creating/opening papaya.db file");
-			e.printStackTrace();
-		}
-		updateDatabases();
-		//updateFiles();
-	}
-
-	public void updateDatabases(){
-		try {
-			MappedByteBuffer buffer = filechannel.map(MapMode.READ_WRITE, 0, filechannel.size());
-			while(buffer.hasRemaining()) {
-				int size = buffer.getInt(); //on get la taille de la première bdd
-				if(size <= 0) { //si aucune taille indiquée, aucune bdd
-					return;
-				} else {
-					byte[] name = new byte[40];
-					buffer.get(name, 0, 40); //on get le nom de la première bdd
-					System.out.println(size + " : " + new String(name, StandardCharsets.UTF_8));
-					databases.put(size, new String(name, StandardCharsets.UTF_8)); //on l'ajoute à la hashmap
-					buffer.position(buffer.position() + size); //on set la position du buffer à la prochaine bdd
-				}
+	public Database(String name) {
+		Path path = Paths.get(name + ".db");
+		//checks if path exists, otherwise creates it
+		if(!Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
+			try {
+				Files.createFile(path);
+				System.out.println("Creating database " + name);
+			} catch (IOException e) {
+				System.out.println("Failed database " + name);
 			}
-			//System.out.println("On essaye de faire une phrase assez longue".getBytes().length + " IIIIICCCCCIIIII");
+		}
+		//opens file
+		try {
+			raf = new RandomAccessFile(path.toFile(), "rw");
+		} catch (FileNotFoundException e) {
+			System.out.println("Failed opening database " + name);
+		}
+		//file to filechannel
+		filechannel = raf.getChannel();
+		//filechannel to buffer
+		try {
+			buffer = filechannel.map(MapMode.READ_WRITE, 0, filechannel.size());
 		} catch (IOException e) {
-			System.out.println("Failed updating databases");
+			System.out.println("failed mapping database " + name);
 			e.printStackTrace();
 		}
-		System.out.println("Number of databases : " + databases.size());
+		
+		updateFiles();
 	}
 	
 	public void updateFiles(){
-		
+		buffer.position(0);
+		while(buffer.hasRemaining()) {
+			int address = buffer.position();
+			int size = buffer.getInt(); //on get la taille du fichier
+			if(size < 44) { //si aucune taille indiquée, aucun fichier
+				//avancez quand même ?
+				return;
+			} else {
+				byte[] name = new byte[40];
+				buffer.get(name, 0, 40); //on get le nom du premier fichier
+				System.out.println(address + " : " + new String(name));
+				files.put(address, new String(name)); //on l'ajoute à la hashmap
+				buffer.position(address + size); //on set la position du buffer à la prochaine bdd
+			}
+		}
+		System.out.println("Number of files : " + files.size());
 	}
 	
-	public void insertFile(String db, String file) {//type surement à chaner...
-		//Trouver la base de données passée en argument et insérer à la suite
-		//4 octets soit 32 bits pour stocker la taille du fichier
-		ByteBuffer buffer = ByteBuffer.allocate(4 + file.getBytes().length);
-		buffer.putInt(file.getBytes().length);
-		buffer.put(file.getBytes());
+	public void insertFile(String db, String file, String data) {
+		//CHECK SI LE NOM DU FICHIER EXISTE DEJA DANS LA BDD
+		int size = 4 + 40 + data.getBytes().length; //taille + nom du fichier + fichier		
+		int address = buffer.capacity();
 		try {
-			filechannel.write(buffer);
+			//adjust size of papaya.db & remap buffer
+			raf.setLength(raf.length() + size);
+			filechannel = raf.getChannel();
+			buffer = filechannel.map(MapMode.READ_WRITE, 0, filechannel.size());
+			//set position to former capacity
+			buffer.position(address);
+			//put size and name
+			buffer.putInt(size);
+			buffer.put(file.getBytes());
+			//fill gap
+			for(int i = file.length(); i < 20; i++){
+				buffer.putChar(' ');
+			}
+			files.put(address, file);
+			System.out.println("Created file " + file);
 		} catch (IOException e) {
-			System.out.println("Failed inserting record");
-			e.printStackTrace();
+			System.out.println("Failed creating file " + file);
+			//e.printStackTrace();
 		}
-		//valeur de retour ?
 	}
 
-	public void createDatabase(String name) {
-		//mettre le buffer à la bonne position d'abord !!!
-		ByteBuffer buffer = ByteBuffer.allocate(4 + 40); //taille + nom de la bdd
-		buffer.putInt(44);
-		for(char c : name.toCharArray()){
-			buffer.putChar(c);
-		}
-		for(int i = buffer.position(); i < 40; i++){
-			buffer.putChar(' ');
-		}
-		try {
-			filechannel.write(buffer, filechannel.size());
-			databases.put(44, name);
-			System.out.println("Created database " + name);
-		} catch (IOException e) {
-			System.out.println("Failed creating database " + name);
-			e.printStackTrace();
-		}
-		//updateDatabases();
-	}
-
-	public void DeleteFile(String string, String string2) {
-		// TODO Auto-generated method stub
+	public void DeleteFile(String name) {
 		
 	}
 
-	public void DeleteDatabase(String string) {
-		// TODO Auto-generated method stub
+	public void DeleteDatabase() {
 		
 	}
 
-	public void getDatabases() {
-		// TODO Auto-generated method stub
-		
+	public HashMap<Integer, String> getFiles(String db, String filter) {
+		files.forEach((address, name) -> {
+			System.out.println(address + " " + name);
+		});
+		return files;
 	}
 
-	public void getFiles(String db, String filter) {
+	public File getFile(String header) {
 		// TODO Auto-generated method stub
 		
 	}

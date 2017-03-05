@@ -1,25 +1,34 @@
 package fr.umlv.papayadb.server;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
+import java.io.File;
+import java.io.FileFilter;
+import java.util.HashMap;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 
 public class Proxy extends AbstractVerticle {
-	private final Database database;
+	private final HashMap<String, Database> databases;
 	private HttpServer server;
 	private final HttpServerOptions httpOptions;
 	
-	public Proxy(Database db) {
-		this.database = db;
+	public Proxy() {
+		this.databases = new HashMap<>();
+		File directory = new File("./");
+		FileFilter db_filter = new FileFilter() {
+			@Override
+			public boolean accept(File file) {
+				return file.getName().endsWith(".db");
+			}
+		};
+		for(File file : directory.listFiles(db_filter)){
+			databases.put(file.getName(), new Database(file.getName()));
+		}
 		this.httpOptions = new HttpServerOptions().setHost("127.0.0.1").setPort(8080);
 	}
 	
@@ -49,78 +58,60 @@ public class Proxy extends AbstractVerticle {
 	}
 	
 	public void onHTTPRequest(HttpServerRequest request) {
-		//JsonObject json = UrlToJson(request);
 		//gestion utilisateur
-		//appel à la db
-		request.formAttributes().forEach(entry -> {
-			System.out.println(entry.getKey() + " " + entry.getValue());
-		});
-		
+		HttpServerResponse response = request.response();
 		try {
-			//if(json.getString("method").equals(HttpMethod.GET.toString())) {
 			if(request.method().equals(HttpMethod.GET)) {
-				//if(!json.getString("db").isEmpty()) {
-				if(!request.getFormAttribute("db").isEmpty()) {
-					//database.getFiles(json.getString("db"), json.getString("filter"));
-					database.getFiles(request.getFormAttribute("db"), request.getFormAttribute("filter"));
+				if(request.headers().contains("db") && !request.getHeader("db").isEmpty()) {
+					if(request.headers().contains("filter") && !request.getHeader("filter").isEmpty()) {
+						StringBuilder sb = new StringBuilder();
+						databases.get(request.getHeader("db")).getFiles(request.getHeader("db"), request.getHeader("filter")).forEach((address, name) -> {
+							sb.append(address).append(" ").append(name).append("\n");
+						});
+						response.setStatusCode(200).end(sb.toString());
+					}
+					if(request.headers().contains("file") && !request.getHeader("file").isEmpty()) {
+						File file = databases.get(request.getHeader("db")).getFile(request.getHeader("file"));
+						response.setStatusCode(200).end();
+					}
 				} else {
-					database.getDatabases();
+					StringBuilder sb = new StringBuilder();
+					databases.forEach((address, name) -> {
+						sb.append(name).append("\n");
+					});
+					response.setStatusCode(200).end(sb.toString());
 				}
 			}
-			//if(json.getString("method").equals(HttpMethod.POST.toString())) {
 			if(request.method().equals(HttpMethod.POST)) {
-				//if(!json.getString("db").isEmpty()) {
-				if(!request.getFormAttribute("db").isEmpty()) {
-					//if(!json.getString("file").isEmpty()) {
-					if(!request.getFormAttribute("file").isEmpty()) {
-						database.insertFile(request.getFormAttribute("db"), request.getFormAttribute("file"));
+				if(request.headers().contains("db") && !request.getHeader("db").isEmpty()) {
+					if(request.headers().contains("file") && !request.getHeader("file").isEmpty()) {
+						request.bodyHandler((Buffer buffer) -> {
+							databases.get(request.getHeader("db")).insertFile(request.getHeader("db"), request.getHeader("file"), buffer.toString());
+						});
+						response.setStatusCode(200).end("File " + request.getHeader("file") + " inserted in " + request.getHeader("db"));
 					} else {
-						database.createDatabase(request.getFormAttribute("db"));
+						if(databases.containsKey(request.getHeader("db"))) {
+							response.setStatusCode(200).end("Database " + request.getHeader("db") + " already exists");
+						} else {
+							databases.put(request.getHeader("db"), new Database(request.getHeader("db")));
+							response.setStatusCode(200).end("Database " + request.getHeader("db") + " created");
+						}
 					}
 				}
 			}
-			//if(json.getString("method").equals(HttpMethod.DELETE.toString())) {
 			if(request.method().equals(HttpMethod.DELETE)) {
-				//if(!json.getString("db").isEmpty()) {
-				if(!request.getFormAttribute("db").isEmpty()) {
-					//if(!json.getString("file").isEmpty()) {
-					if(!request.getFormAttribute("file").isEmpty()) {
-						database.DeleteFile(request.getFormAttribute("db"), request.getFormAttribute("file"));
+				if(request.headers().contains("db") && !request.getHeader("db").isEmpty()) {
+					if(request.headers().contains("file") && !request.getHeader("file").isEmpty()) {
+						databases.get(request.getHeader("db")).DeleteFile(request.getHeader("file"));
 					} else {
-						database.DeleteDatabase(request.getFormAttribute("db"));
+						databases.get(request.getHeader("db")).DeleteDatabase();
 					}
 				}
 			}
 		} catch (NullPointerException e) {
 			System.out.println("Request not valid");
+			response.setStatusCode(404).end("Request not valid");
+			e.printStackTrace();
 		}
-		
-		request.response().end("Hello world");
-	}
-	
-	public static JsonObject UrlToJson(HttpServerRequest request) {
-		Objects.requireNonNull(request);
-		String[] splitedRequest = request.path().split("/");
-		List<String> requestList = Arrays.stream(splitedRequest).filter(e -> !e.isEmpty()).collect(Collectors.toList());
-
-		JsonObject json = new JsonObject();
-		json.put("method", request.method().toString());
-		/*if(requestList.isEmpty()) {
-			json.put("db", "*");
-		}*/
-		if(requestList.size() == 1) {
-			json.put("db", requestList.get(0));
-			JsonObject filter = new JsonObject();
-			for(Entry<String, String> entry : request.params()) {
-				filter.put(entry.getKey(), entry.getValue());
-			}
-			json.put("filter", filter);
-		}
-		if(requestList.size() == 2) {
-			json.put("db", requestList.get(0));
-			json.put("file", requestList.get(1));
-		}
-		
-		return json;
 	}
 }

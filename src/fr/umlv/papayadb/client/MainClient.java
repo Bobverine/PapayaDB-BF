@@ -4,6 +4,9 @@ import java.util.Scanner;
 
 public class MainClient {
 
+	/** Permet d'afficher d'instencier la classe Client et permet à l'utilisateur de saisir ses commandes
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		if (args.length != 1) {
 			throw new IllegalArgumentException("Entrez l'adresse suivi du port ex : http://127.0.0.1:8080");

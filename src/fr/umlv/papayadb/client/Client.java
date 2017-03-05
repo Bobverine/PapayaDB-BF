@@ -21,7 +21,12 @@ import java.util.concurrent.ExecutionException;
 public class Client {
 	private String server;
 	private final HttpClient client;
-
+	
+	
+	
+	/** Constructeur du client HTTP
+	 * @param server
+	 */
 	public Client(String server) {
 		this.server = server;
 		//char[] password = {'p','a','s','s','w','o','r','d'};
@@ -53,7 +58,7 @@ public class Client {
 	}*/
 
 	/**
-	 * Envoi la commande au serveur en fonction de la requpete de l'utilisateur
+	 * Envoi la commande au serveur en fonction de la requete de l'utilisateur
 	 * (GET, POST ...)
 	 * 
 	 * @param client
@@ -104,6 +109,11 @@ public class Client {
 		return true;
 	}
 	
+	/**
+	 * Permet de télécharger un fichier dans la base donnée en paramètre
+	 * @param database
+	 * @param file
+	 */
 	private void getFileFromDb(String database, String file) {
 		Objects.requireNonNull(file);
 		try {
@@ -122,7 +132,7 @@ public class Client {
 	}
 
 	/**
-	 * Permet d'envoyer un fichier json/txt pour insersion dans la BDD
+	 * Permet d'envoyer un fichier pour insersion dans la BDD donnée en paramètre
 	 * @param file
 	 */
 	private void insertFileFromLocal(String database,String file) {
@@ -140,8 +150,13 @@ public class Client {
 		} catch (URISyntaxException | InterruptedException | ExecutionException e) {
 			e.printStackTrace();
 		}
-	} // insertFileFromLocal /Users/Rayco/Documents/testJSON.json
-
+	} 
+	
+	/**
+	 * Permet de lire un fichier
+	 * @param file le fichier à lire
+	 * @return La string qui contient tout le contenu du fichier
+	 */
 	private String readFile(String file) {
 		try{
 	         InputStream ips=new FileInputStream(file);
@@ -168,19 +183,19 @@ public class Client {
 	 * @return void
 	 */
 	private void printCommand() {
-		System.out.println("Voici les commandes possibles : \n" + "Créer une database : createDatabase /:dbname \n"
-				+ "Supprimer une database : deleteDatabase /:dbname \n"
+		System.out.println("Voici les commandes possibles : \n" + "Créer une database : createDatabase dbname \n"
+				+ "Supprimer une database : deleteDatabase dbname \n"
 				+ "Afficher toutes les bases de données : selectDatabases / \n"
-				+ "Insérer dans une base de donnée : insertFileFromLocal /:dbname/:filename \n"
-				+ "Supprimer dans une base de donnée : deleteFileFromDb /:dbname/:filename \n"
-				+ "Afficher une donnée d'une base de donnée : selectFromDatabase /:dbname?filter=[...] \n");
+				+ "Insérer dans une base de donnée : insertFileFromLocal dbname filename \n"
+				+ "Supprimer dans une base de donnée : deleteFileFromDb dbname filename \n"
+				+ "Afficher une donnée d'une base de donnée : selectFromDatabase dbname filters... \n"
+				+ "Télécharger les files d'une base de donnée : getFileFromDb dayabase \n");
 	}
 
 	/**
-	 * Permet d'envoyer une requête HTTP de type POST
+	 * Permet d'envoyer une requête HTTP de type POST afin créer la base de donnée en paramètre
 	 * 
-	 * @param request
-	 *            requête de l'utilisateur à transmettre
+	 * @param database Le nom de la database à créer
 	 */
 	private void post(String database) {
 		Objects.requireNonNull(database);
@@ -197,10 +212,9 @@ public class Client {
 	}
 
 	/**
-	 * Permet d'envoyer une requête HTTP de type GET
+	 * Permet d'envoyer une requête HTTP de type GET afin de récupérer le contenu de la BDD en paramètre
 	 * 
-	 * @param request
-	 *            requête de l'utilisateur à transmettre
+	 * @param database Le nom de la database
 	 */
 	private void get(String database) {
 		Objects.requireNonNull(database);
@@ -217,10 +231,10 @@ public class Client {
 	}
 	
 	/**
-	 * Permet d'envoyer une requête HTTP de type GET
+	 * Permet d'envoyer une requête HTTP de type GET afin de récupérer le contenu de la BDD en paramètre celon certains filtres
 	 * 
-	 * @param request
-	 *            requête de l'utilisateur à transmettre
+	 * @param database Le nom de la database
+	 * @param filter Les filtres de sélection
 	 */
 	private void get(String database,String filter) {
 		Objects.requireNonNull(filter);
@@ -238,33 +252,9 @@ public class Client {
 	}
 
 	/**
-	 * Permet d'envoyer une requête HTTP de type PUT
+	 * Permet d'envoyer une requête HTTP de type DELETE pour supprimer la BDD en paramètre
 	 * 
-	 * @param request
-	 *            requête de l'utilisateur à transmettre
-	 */
-	// private void put(String request) {
-	// Objects.requireNonNull(request);
-	// try {
-	// CompletableFuture<HttpResponse> response = HttpRequest
-	// .create(new URI(this.server))
-	// .body(HttpRequest.fromString(request))
-	// .PUT()
-	// .responseAsync();
-	//
-	// HttpResponse r = response.get();
-	// System.out.println(r.body(HttpResponse.asString()));
-	// } catch (URISyntaxException | InterruptedException | ExecutionException
-	// e) {
-	// e.printStackTrace();
-	// }
-	// }
-
-	/**
-	 * Permet d'envoyer une requête HTTP de type DELETE
-	 * 
-	 * @param request
-	 *            requête de l'utilisateur à transmettre
+	 * @param database Le nom de la database à créer
 	 */
 	private void delete(String database) {
 		Objects.requireNonNull(database);
@@ -282,7 +272,7 @@ public class Client {
 	}
 	
 	/**
-	 * Permet d'envoyer une requête HTTP de type DELETE
+	 * Permet d'envoyer une requête HTTP de type DELETE pour supprimer un fichier d'une database
 	 * 
 	 * @param request
 	 *            requête de l'utilisateur à transmettre

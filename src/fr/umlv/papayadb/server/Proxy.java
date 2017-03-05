@@ -10,7 +10,6 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonObject;
 
 public class Proxy extends AbstractVerticle {
 	private final HashMap<String, Database> databases;
@@ -27,7 +26,8 @@ public class Proxy extends AbstractVerticle {
 			}
 		};
 		for(File file : directory.listFiles(db_filter)){
-			databases.put(file.getName(), new Database(file.getName()));
+			String name = file.getName().substring(0, file.getName().length() - 3);
+			databases.put(name, new Database(name));
 		}
 		this.httpOptions = new HttpServerOptions().setHost("127.0.0.1").setPort(8080);
 	}
@@ -62,21 +62,30 @@ public class Proxy extends AbstractVerticle {
 		HttpServerResponse response = request.response();
 		try {
 			if(request.method().equals(HttpMethod.GET)) {
-				if(request.headers().contains("db") && !request.getHeader("db").isEmpty()) {
-					if(request.headers().contains("filter") && !request.getHeader("filter").isEmpty()) {
+				if(request.headers().contains("db") && !request.getHeader("db").isEmpty() ) {
+					if(!databases.containsKey(request.getHeader("db"))){
+						response.setStatusCode(200).end("Database " + request.getHeader("db") + " does not exists");
+					}
+					else if(request.headers().contains("filter") && !request.getHeader("filter").isEmpty()) {
 						StringBuilder sb = new StringBuilder();
-						databases.get(request.getHeader("db")).getFiles(request.getHeader("db"), request.getHeader("filter")).forEach((address, name) -> {
+						databases.get(request.getHeader("db")).getFiles(request.getHeader("filter")).forEach((address, name) -> {
 							sb.append(address).append(" ").append(name).append("\n");
 						});
 						response.setStatusCode(200).end(sb.toString());
 					}
-					if(request.headers().contains("file") && !request.getHeader("file").isEmpty()) {
-						File file = databases.get(request.getHeader("db")).getFile(request.getHeader("file"));
-						response.setStatusCode(200).end();
+					else if(request.headers().contains("file") && !request.getHeader("file").isEmpty()) {
+						String file = databases.get(request.getHeader("db")).getFile(request.getHeader("file"));
+						response.setStatusCode(200).end(file);
+					} else {
+						StringBuilder sb = new StringBuilder();
+						databases.get(request.getHeader("db")).getFiles().forEach((address, name) -> {
+							sb.append(address).append(" ").append(name).append("\n");
+						});
+						response.setStatusCode(200).end(sb.toString());
 					}
 				} else {
 					StringBuilder sb = new StringBuilder();
-					databases.forEach((address, name) -> {
+					databases.forEach((name, database) -> {
 						sb.append(name).append("\n");
 					});
 					response.setStatusCode(200).end(sb.toString());
@@ -85,10 +94,15 @@ public class Proxy extends AbstractVerticle {
 			if(request.method().equals(HttpMethod.POST)) {
 				if(request.headers().contains("db") && !request.getHeader("db").isEmpty()) {
 					if(request.headers().contains("file") && !request.getHeader("file").isEmpty()) {
-						request.bodyHandler((Buffer buffer) -> {
-							databases.get(request.getHeader("db")).insertFile(request.getHeader("db"), request.getHeader("file"), buffer.toString());
-						});
-						response.setStatusCode(200).end("File " + request.getHeader("file") + " inserted in " + request.getHeader("db"));
+						if(!databases.containsKey(request.getHeader("db"))){
+							response.setStatusCode(200).end("Database " + request.getHeader("db") + " does not exists");
+						}
+						else {
+							request.bodyHandler((Buffer buffer) -> {
+								databases.get(request.getHeader("db")).insertFile(request.getHeader("db"), request.getHeader("file"), buffer.toString());
+							});
+							response.setStatusCode(200).end("File " + request.getHeader("file") + " inserted in " + request.getHeader("db"));
+						}
 					} else {
 						if(databases.containsKey(request.getHeader("db"))) {
 							response.setStatusCode(200).end("Database " + request.getHeader("db") + " already exists");
@@ -104,14 +118,18 @@ public class Proxy extends AbstractVerticle {
 					if(request.headers().contains("file") && !request.getHeader("file").isEmpty()) {
 						databases.get(request.getHeader("db")).DeleteFile(request.getHeader("file"));
 					} else {
-						databases.get(request.getHeader("db")).DeleteDatabase();
+						if(databases.get(request.getHeader("db")).DeleteDatabase()){
+							databases.remove(request.getHeader("db"));
+							response.setStatusCode(200).end("Database " + request.getHeader("db") + " deleted");
+						} else {
+							response.setStatusCode(200).end("Problems encountered with deleting database " + request.getHeader("db"));
+						}
 					}
 				}
 			}
 		} catch (NullPointerException e) {
 			System.out.println("Request not valid");
 			response.setStatusCode(404).end("Request not valid");
-			e.printStackTrace();
 		}
 	}
 }
